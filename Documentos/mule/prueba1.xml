@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" >
+		<db:oracle-connection host="localhost" user="PR_MULE" password="12345" serviceName="ORCLPDB"/>
+	</db:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config1" doc:name="Database Config"  >
+		<db:oracle-connection host="localhost" user="PR_MULE" password="12345" serviceName="ORCLPDB" />
+	</db:config>
+	<flow name="prueba1" >
+		<http:listener doc:name="Listener" config-ref="HTTP_Listener_config" path="getData"/>
+		<db:select doc:name="Select" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT ID, NOMBRE, APELLIDO FROM EMPLEADOS]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="prueba1Flow"  >
+		<http:listener doc:name="Listener"  config-ref="HTTP_Listener_config" path="postData"/>
+		<ee:transform doc:name="Transform Message"  >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+					output application/java
+					---
+					payload
+					]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:insert doc:name="Insert" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO EMPLEADOS (ID, NOMBRE, APELLIDO)
+				VALUES(:ID, :NOMBRE, :APELLIDO)]]>
+			</db:sql>
+			<db:input-parameters><![CDATA[
+				#[{
+					ID :payload.id,
+					NOMBRE :payload.nombre,
+					APELLIDO :payload.apellido
+				}]]]>
+			</db:input-parameters>
+		</db:insert>
+	</flow>
+
+	
+	
+	
+	
+	
+
+
+</mule>
