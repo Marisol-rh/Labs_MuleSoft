@@ -2,4 +2,10 @@
         "ID": 15,
         "NOMBRE": "Ian",
         "APELLIDO": "Del Valle"    
+
 }
+
+
+
+GET: http://localhost:8081/getData
+POST: http://localhost:8081/postData
